@@ -15,12 +15,13 @@ function initScene() {
     directionalLight.position.set(0, 10, 0);
     scene.add(directionalLight);
 
-    camera.position.z = 5;
+    camera.position.z = 5; // Ajusta la posición de la cámara para ver el avatar de frente.
 }
 
 function loadBackground() {
     const loader = new THREE.TextureLoader();
-    loader.load('https://your-realistic-background-texture.jpg',
+    loader.load(
+        'https://upload.wikimedia.org/wikipedia/commons/0/0d/International_Space_Station_interior_view.jpg', // Fondo espacial
         function(texture) {
             scene.background = texture;
         },
@@ -31,34 +32,19 @@ function loadBackground() {
     );
 }
 
-function loadConferenceRoom() {
-    const roomLoader = new THREE.GLTFLoader();
-    roomLoader.load('path-to-your-realistic-room-model.glb', 
-        function(gltf) {
-            conferenceRoom = gltf.scene;
-            conferenceRoom.scale.set(10, 10, 10);
-            conferenceRoom.position.set(0, -10, -20);
-            scene.add(conferenceRoom);
-        },
-        undefined,
-        function(error) {
-            console.error('Error cargando la sala de conferencias:', error);
-        }
-    );
-}
-
 function loadAvatar() {
     const avatarLoader = new THREE.GLTFLoader();
-    avatarLoader.load('path-to-your-realistic-avatar-model.glb', 
+    avatarLoader.load(
+        'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/RobotExpressive/RobotExpressive.glb', 
         function(gltf) {
             avatar = gltf.scene;
             avatar.scale.set(0.5, 0.5, 0.5);
-            avatar.position.set(0, -5, 0);
+            avatar.position.set(0, -1.5, 0); // Coloca el avatar en el centro de la pantalla.
             scene.add(avatar);
 
             mixer = new THREE.AnimationMixer(avatar);
             const animations = gltf.animations;
-            action = mixer.clipAction(animations[1]);
+            action = mixer.clipAction(animations[1]); // Animación de saludo.
             action.play();
 
             showMessage("Hola, hoy te diré el día que cambiará tu vida. Acompáñame.");
@@ -79,7 +65,7 @@ function loadAvatar() {
 function moveAvatar() {
     const duration = 5000;
     const startPosition = avatar.position.clone();
-    const endPosition = new THREE.Vector3(0, -10, -15);
+    const endPosition = new THREE.Vector3(0, -1.5, -5); // Movimiento hacia atrás.
     const startTime = Date.now();
 
     function update() {
@@ -120,7 +106,6 @@ function onWindowResize() {
 function init() {
     initScene();
     loadBackground();
-    loadConferenceRoom();
     loadAvatar();
     animate();
     window.addEventListener('resize', onWindowResize);
