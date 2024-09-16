@@ -67,7 +67,7 @@ function startTransitionToConference() {
     action.stop();
 
     // Cambiar el fondo a una conferencia
-    loadBackground('https://your-conference-background-image.jpg', 0x1a1a1a, () => {
+    loadBackground('https://unsplash.com/photos/gMsnXqILjp4/download?force=true&w=1920', 0x1a1a1a, () => {
         avatar.position.set(0, -1.5, -5);
         action = mixer.clipAction(avatar.animations[1]); // Cambiar a animación de salto si existe
         action.play();
