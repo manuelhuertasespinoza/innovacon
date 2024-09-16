@@ -1,6 +1,6 @@
-let scene, camera, renderer, avatar, mixer, action;
+let scene, camera, renderer, stars;
 const clock = new THREE.Clock();
-let backgroundLoaded = false;
+let mixer, action, avatar;
 
 function initScene() {
     scene = new THREE.Scene();
@@ -16,24 +16,32 @@ function initScene() {
     scene.add(directionalLight);
 
     camera.position.set(0, 1.5, 5);
-    scene.background = new THREE.Color(0x1a1a1a); // Fijar un color de fondo inicial
+
+    // Cargar estrellas dinámicas
+    createStars();
+
+    loadAvatar();
 }
 
-function loadBackground(textureUrl, fallbackColor = 0x000000, callback) {
-    const loader = new THREE.TextureLoader();
-    loader.load(
-        textureUrl,
-        function(texture) {
-            scene.background = texture; // Aplicar la textura como fondo
-            callback();
-        },
-        undefined,
-        function(err) {
-            console.error('Error cargando la textura:', err);
-            scene.background = new THREE.Color(fallbackColor); // Aplicar un color de respaldo si falla
-            callback();
-        }
-    );
+function createStars() {
+    let starGeometry = new THREE.Geometry();
+    let starMaterial = new THREE.PointsMaterial({
+        color: 0xaaaaaa,
+        size: 1,
+        sizeAttenuation: true
+    });
+
+    for (let i = 0; i < 10000; i++) {
+        let star = new THREE.Vector3(
+            (Math.random() - 0.5) * 2000,
+            (Math.random() - 0.5) * 2000,
+            -Math.random() * 2000
+        );
+        starGeometry.vertices.push(star);
+    }
+
+    stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
 }
 
 function loadAvatar() {
@@ -43,7 +51,7 @@ function loadAvatar() {
         function(gltf) {
             avatar = gltf.scene;
             avatar.scale.set(0.5, 0.5, 0.5);
-            avatar.position.set(0, -1.5, 0);
+            avatar.position.set(0, -1.5, 0); // Coloca el avatar en el centro de la pantalla.
             scene.add(avatar);
 
             mixer = new THREE.AnimationMixer(avatar);
@@ -66,15 +74,22 @@ function loadAvatar() {
 function startTransitionToConference() {
     action.stop();
 
-    // Cambiar el fondo a una conferencia
-    loadBackground('https://unsplash.com/photos/gMsnXqILjp4/download?force=true&w=1920', 0x1a1a1a, () => {
-        avatar.position.set(0, -1.5, -5);
-        action = mixer.clipAction(avatar.animations[1]); // Cambiar a animación de salto si existe
-        action.play();
+    // Cambiar la escena o fondo a una conferencia
+    loadConferenceBackground();
+}
 
-        showMessage("¡Bienvenido a la conferencia de innovación!");
-        document.getElementById('joinButton').style.display = 'block';
-    });
+function loadConferenceBackground() {
+    const loader = new THREE.TextureLoader();
+    loader.load(
+        'https://your-conference-background-image.jpg',
+        function(texture) {
+            scene.background = texture;
+        },
+        undefined,
+        function(err) {
+            console.error('Error cargando la textura de fondo de la conferencia:', err);
+        }
+    );
 }
 
 function animate() {
@@ -82,6 +97,9 @@ function animate() {
     if (mixer) {
         mixer.update(clock.getDelta());
     }
+    stars.rotation.x += 0.0005;  // Hace que las estrellas se muevan lentamente
+    stars.rotation.y += 0.0005;
+
     renderer.render(scene, camera);
 }
 
@@ -97,13 +115,6 @@ function onWindowResize() {
 
 function init() {
     initScene();
-    loadBackground(
-        'https://upload.wikimedia.org/wikipedia/commons/e/e3/ISS-44_International_Space_Station_Flyaround.jpg',
-        0x000000, // Color de respaldo si la textura falla
-        () => {
-            loadAvatar(); // Una vez cargado el fondo, cargar el avatar
-        }
-    );
     animate();
     window.addEventListener('resize', onWindowResize);
     document.getElementById('loading').style.display = 'none';
