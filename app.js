@@ -1,5 +1,5 @@
-let scene, camera, renderer, avatar, conferenceRoom;
-let mixer, action;
+let scene, camera, renderer, avatar;
+let mixer, action, backgroundState = 0;
 const clock = new THREE.Clock();
 
 function initScene() {
@@ -18,16 +18,30 @@ function initScene() {
     camera.position.z = 5; // Ajusta la posición de la cámara para ver el avatar de frente.
 }
 
-function loadBackground() {
+function loadSpaceBackground() {
     const loader = new THREE.TextureLoader();
     loader.load(
-        'https://upload.wikimedia.org/wikipedia/commons/0/0d/International_Space_Station_interior_view.jpg', // Fondo espacial
+        'https://upload.wikimedia.org/wikipedia/commons/e/e3/ISS-44_International_Space_Station_Flyaround.jpg', // Fondo del espacio exterior
         function(texture) {
             scene.background = texture;
         },
         undefined,
         function(err) {
-            console.error('Error cargando la textura de fondo:', err);
+            console.error('Error cargando la textura de fondo del espacio:', err);
+        }
+    );
+}
+
+function loadConferenceBackground() {
+    const loader = new THREE.TextureLoader();
+    loader.load(
+        'https://your-conference-background-image.jpg', // Fondo del escenario de conferencia
+        function(texture) {
+            scene.background = texture;
+        },
+        undefined,
+        function(err) {
+            console.error('Error cargando la textura de fondo de conferencia:', err);
         }
     );
 }
@@ -35,7 +49,7 @@ function loadBackground() {
 function loadAvatar() {
     const avatarLoader = new THREE.GLTFLoader();
     avatarLoader.load(
-        'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/RobotExpressive/RobotExpressive.glb', 
+        'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
         function(gltf) {
             avatar = gltf.scene;
             avatar.scale.set(0.5, 0.5, 0.5);
@@ -44,15 +58,12 @@ function loadAvatar() {
 
             mixer = new THREE.AnimationMixer(avatar);
             const animations = gltf.animations;
-            action = mixer.clipAction(animations[1]); // Animación de saludo.
+            action = mixer.clipAction(animations[1]); // Animación de saludo saltando.
             action.play();
 
-            showMessage("Hola, hoy te diré el día que cambiará tu vida. Acompáñame.");
+            showMessage("Hola, bienvenido a la Conferencia de Innovación. Acompáñame.");
             setTimeout(() => {
-                action.stop();
-                action = mixer.clipAction(animations[3]);
-                action.play();
-                moveAvatar();
+                transitionToConference();
             }, 5000);
         },
         undefined,
@@ -62,27 +73,21 @@ function loadAvatar() {
     );
 }
 
-function moveAvatar() {
-    const duration = 5000;
-    const startPosition = avatar.position.clone();
-    const endPosition = new THREE.Vector3(0, -1.5, -5); // Movimiento hacia atrás.
-    const startTime = Date.now();
+function transitionToConference() {
+    // Cambiar el fondo a la sala de conferencias
+    loadConferenceBackground();
 
-    function update() {
-        const now = Date.now();
-        const timeElapsed = now - startTime;
-        if (timeElapsed < duration) {
-            const progress = timeElapsed / duration;
-            avatar.position.lerpVectors(startPosition, endPosition, progress);
-            requestAnimationFrame(update);
-        } else {
-            avatar.position.copy(endPosition);
-            action.stop();
-            showMessage("Bienvenido a la Conferencia de Innovación del Futuro");
-            document.getElementById('joinButton').style.display = 'block';
-        }
-    }
-    update();
+    // Cambiar la posición del avatar al estrado
+    avatar.position.set(0, -1.5, -5); // Ajustar la posición para que esté en el escenario
+
+    // Mostrar nuevo mensaje
+    showMessage("¡Bienvenido a la Conferencia! El futuro comienza aquí.");
+    action.stop();
+    action = mixer.clipAction(avatar.animations[1]); // Realiza otra animación si es necesario
+    action.play();
+
+    // Mostrar botón de unirse
+    document.getElementById('joinButton').style.display = 'block';
 }
 
 function animate() {
@@ -105,7 +110,7 @@ function onWindowResize() {
 
 function init() {
     initScene();
-    loadBackground();
+    loadSpaceBackground();
     loadAvatar();
     animate();
     window.addEventListener('resize', onWindowResize);
