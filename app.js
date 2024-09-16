@@ -1,6 +1,7 @@
 let scene, camera, renderer, stars;
 const clock = new THREE.Clock();
 let mixer, action, avatar;
+let loadingScreen = document.getElementById('loading'); // Obtener referencia a "Cargando"
 
 function initScene() {
     scene = new THREE.Scene();
@@ -20,7 +21,8 @@ function initScene() {
     // Cargar estrellas dinámicas
     createStars();
 
-    loadAvatar();
+    // Quitar el mensaje de "Cargando" al iniciar la animación
+    loadingScreen.style.display = 'none';
 }
 
 function createStars() {
@@ -67,6 +69,7 @@ function loadAvatar() {
         undefined,
         function(error) {
             console.error('Error cargando el avatar:', error);
+            showMessage('Error cargando el avatar. Intenta recargar la página.');
         }
     );
 }
@@ -74,7 +77,7 @@ function loadAvatar() {
 function startTransitionToConference() {
     action.stop();
 
-    // Cambiar la escena o fondo a una conferencia
+    // Cambiar el fondo a una conferencia
     loadConferenceBackground();
 }
 
@@ -88,6 +91,7 @@ function loadConferenceBackground() {
         undefined,
         function(err) {
             console.error('Error cargando la textura de fondo de la conferencia:', err);
+            showMessage('Error cargando el fondo de la conferencia.');
         }
     );
 }
@@ -116,8 +120,8 @@ function onWindowResize() {
 function init() {
     initScene();
     animate();
+    loadAvatar(); // Cargar el avatar después de inicializar la escena
     window.addEventListener('resize', onWindowResize);
-    document.getElementById('loading').style.display = 'none';
 }
 
 document.getElementById('joinButton').addEventListener('click', () => {
