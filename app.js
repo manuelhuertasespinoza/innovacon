@@ -16,19 +16,22 @@ function initScene() {
     scene.add(directionalLight);
 
     camera.position.set(0, 1.5, 5);
+    scene.background = new THREE.Color(0x1a1a1a); // Fijar un color de fondo inicial
 }
 
-function loadBackground(textureUrl, callback) {
+function loadBackground(textureUrl, fallbackColor = 0x000000, callback) {
     const loader = new THREE.TextureLoader();
     loader.load(
         textureUrl,
         function(texture) {
-            scene.background = texture;
+            scene.background = texture; // Aplicar la textura como fondo
             callback();
         },
         undefined,
         function(err) {
             console.error('Error cargando la textura:', err);
+            scene.background = new THREE.Color(fallbackColor); // Aplicar un color de respaldo si falla
+            callback();
         }
     );
 }
@@ -64,7 +67,7 @@ function startTransitionToConference() {
     action.stop();
 
     // Cambiar el fondo a una conferencia
-    loadBackground('https://your-conference-background-image.jpg', () => {
+    loadBackground('https://your-conference-background-image.jpg', 0x1a1a1a, () => {
         avatar.position.set(0, -1.5, -5);
         action = mixer.clipAction(avatar.animations[1]); // Cambiar a animación de salto si existe
         action.play();
@@ -94,9 +97,13 @@ function onWindowResize() {
 
 function init() {
     initScene();
-    loadBackground('https://upload.wikimedia.org/wikipedia/commons/e/e3/ISS-44_International_Space_Station_Flyaround.jpg', () => {
-        loadAvatar();
-    });
+    loadBackground(
+        'https://upload.wikimedia.org/wikipedia/commons/e/e3/ISS-44_International_Space_Station_Flyaround.jpg',
+        0x000000, // Color de respaldo si la textura falla
+        () => {
+            loadAvatar(); // Una vez cargado el fondo, cargar el avatar
+        }
+    );
     animate();
     window.addEventListener('resize', onWindowResize);
     document.getElementById('loading').style.display = 'none';
